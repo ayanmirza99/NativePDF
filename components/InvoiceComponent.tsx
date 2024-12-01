@@ -1,36 +1,81 @@
+import { showDateInvoice } from "@/constants";
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
-import logo from "../assets/logo.jpeg";
+import { StyleSheet } from "react-native";
 
-interface InvoiceData {
-  orderNumber: string;
+interface Data {
   createdAt: string;
+  customerId: Customer;
+  orderNumber: string;
+  paymentMethod: string;
+  status: Status[];
+  subOrder: SubOrder[];
+  updatedAt: string;
+  designation?: string;
+  id: string;
+}
+
+interface Customer {
+  id: string;
   firstName: string;
   lastName: string;
+  email: string;
   phoneNumber: string;
+  reference: string;
+  role: string;
+  status: string;
+  streetAddress: string;
+  streetNumber: string;
+  municipality: string;
+  city: string;
+  country: string;
+  notificationToken: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Status {
+  createdAt: string;
+  status: string;
+  updatedAt: string;
+  _id: string;
+}
+
+interface SubOrder {
+  id: string;
+  subOrderNumber: string;
+  country: string;
+  deliveryDate: string;
+  dosage: string;
   perCubicMeterConcretePrice: number;
   volumeOfConcrete: number;
-  designation: string;
+  timeOfDelivery: string;
+  totalAmount: string;
+  status: Status[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface InvoiceProps {
-  data: InvoiceData;
+  data: Data;
 }
 const Invoice = ({ data }: InvoiceProps) => {
-  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [totalPrice, setTotalPrice] = useState(0);
   useEffect(() => {
-    if (data.perCubicMeterConcretePrice) {
-      setTotalPrice(data?.perCubicMeterConcretePrice * data?.volumeOfConcrete);
-    }
-  }, [data.perCubicMeterConcretePrice, data.volumeOfConcrete]);
+    let sum = 0;
+    data.subOrder.map((sub) => {
+      sum += parseFloat(sub.totalAmount);
+    });
+    setTotalPrice(sum);
+  }, []);
+  console.log(totalPrice);
+
   const totalRows = 6;
   const rowsToRender = [
-    {
-      ...data,
-      ref: 1,
-      designation: data.designation ? data.designation : "-",
-      totalPrice: totalPrice,
-    },
+    ...data.subOrder.map((subOrder, index) => ({
+      ...subOrder,
+      ref: index + 1,
+      designation: data?.designation ? data?.designation : "-",
+    })),
     ...Array(totalRows - 1).fill({}),
   ];
 
@@ -50,11 +95,9 @@ const Invoice = ({ data }: InvoiceProps) => {
       }}
     >
       <style>
-        {`
-          h4 {
+        {`h4 {
             margin: 0;
-          }
-        `}
+          }`}
       </style>
       <section
         style={{
@@ -88,23 +131,25 @@ const Invoice = ({ data }: InvoiceProps) => {
             <h4 style={{ fontWeight: 600 }}>Id. Nat: 01-490-N499993T</h4>
             <h4 style={{ fontWeight: 600 }}>N{"'"}IMPOT A1915112Y</h4>
           </div>
-          <View style={styles.container}>
+          {/* <View style={styles.container}>
             <View style={styles.logoContainer}>
-              <Image
-                source={require("../assets/logo.jpeg")}
-                style={styles.logo}
-              />
+              <Image source={("../assets/logo.jpeg")} />
             </View>
-          </View>
+          </View> */}
         </div>
       </section>
       <section
-        style={{ width: "190mm", display: "flex", justifyContent: "center" }}
+        style={{
+          width: "190mm",
+          display: "flex",
+          justifyContent: "center",
+          marginTop: "6mm",
+        }}
       >
         <div
           style={{
             border: "0.5mm solid black",
-            padding: "0 22mm 4mm 22mm",
+            padding: "2mm 22mm 2mm 22mm",
             fontWeight: 500,
             fontSize: "5mm",
           }}
@@ -120,7 +165,7 @@ const Invoice = ({ data }: InvoiceProps) => {
           fontSize: "4.2mm",
         }}
       >
-        <h4>Date: {data.createdAt}</h4>
+        <h4>Date: {showDateInvoice(data.createdAt)}</h4>
       </section>
       <section
         style={{ width: "190mm", display: "flex", justifyContent: "flex-end" }}
@@ -138,9 +183,11 @@ const Invoice = ({ data }: InvoiceProps) => {
           }}
         >
           <h4 style={{ fontWeight: 500 }}>
-            Client: {data.firstName + " " + data.lastName}
+            Client: {data.customerId.firstName + " " + data.customerId.lastName}
           </h4>
-          <h4 style={{ fontWeight: 500 }}>Tel: {data.phoneNumber}</h4>
+          <h4 style={{ fontWeight: 500 }}>
+            Tel: {data.customerId.phoneNumber}
+          </h4>
         </div>
       </section>
       <table
@@ -156,7 +203,7 @@ const Invoice = ({ data }: InvoiceProps) => {
               style={{
                 border: "0.5mm solid black",
                 borderRight: "none",
-                padding: "0 1.5mm 4mm 1.5mm",
+                padding: "2mm 1.5mm 2mm 1.5mm",
               }}
             >
               S. No
@@ -165,7 +212,7 @@ const Invoice = ({ data }: InvoiceProps) => {
               style={{
                 border: "0.5mm solid black",
                 borderRight: "none",
-                padding: "0 1.5mm 4mm 1.5mm",
+                padding: "2mm 1.5mm 2mm 1.5mm",
               }}
             >
               Designation
@@ -174,7 +221,7 @@ const Invoice = ({ data }: InvoiceProps) => {
               style={{
                 border: "0.5mm solid black",
                 borderRight: "none",
-                padding: "0 1.5mm 4mm 1.5mm",
+                padding: "2mm 1.5mm 2mm 1.5mm",
               }}
             >
               Quantity
@@ -183,7 +230,7 @@ const Invoice = ({ data }: InvoiceProps) => {
               style={{
                 border: "0.5mm solid black",
                 borderRight: "none",
-                padding: "0 1.5mm 4mm 1.5mm",
+                padding: "2mm 1.5mm 2mm 1.5mm",
               }}
             >
               Unit Price
@@ -191,7 +238,7 @@ const Invoice = ({ data }: InvoiceProps) => {
             <th
               style={{
                 border: "0.5mm solid black",
-                padding: "0 1.5mm 4mm 1.5mm",
+                padding: "2mm 1.5mm 2mm 1.5mm",
               }}
             >
               Price Total
@@ -206,7 +253,7 @@ const Invoice = ({ data }: InvoiceProps) => {
                   borderLeft: "0.5mm solid black",
                   borderBottom: "0.5mm solid black",
                   textAlign: "center",
-                  paddingBottom: "4mm",
+                  padding: "2mm 0 2mm 0",
                 }}
               >
                 {row.ref || ""}
@@ -216,7 +263,7 @@ const Invoice = ({ data }: InvoiceProps) => {
                   borderLeft: "0.5mm solid black",
                   borderBottom: "0.5mm solid black",
                   textAlign: "center",
-                  paddingBottom: "4mm",
+                  padding: "2mm 0 2mm 0",
                 }}
               >
                 {row.designation || ""}
@@ -226,7 +273,7 @@ const Invoice = ({ data }: InvoiceProps) => {
                   borderLeft: "0.5mm solid black",
                   borderBottom: "0.5mm solid black",
                   textAlign: "center",
-                  paddingBottom: "4mm",
+                  padding: "2mm 0 2mm 0",
                 }}
               >
                 {row.volumeOfConcrete ? `${row.volumeOfConcrete} m³` : ""}
@@ -236,7 +283,7 @@ const Invoice = ({ data }: InvoiceProps) => {
                   borderLeft: "0.5mm solid black",
                   borderBottom: "0.5mm solid black",
                   textAlign: "center",
-                  paddingBottom: "4mm",
+                  padding: "2mm 0 2mm 0",
                 }}
               >
                 {row.perCubicMeterConcretePrice || ""}
@@ -246,10 +293,10 @@ const Invoice = ({ data }: InvoiceProps) => {
                   border: "0.5mm solid black",
                   borderTop: "none",
                   textAlign: "center",
-                  paddingBottom: "4mm",
+                  padding: "2mm 0 2mm 0",
                 }}
               >
-                {row.totalPrice}
+                {row.totalAmount}
               </td>
             </tr>
           ))}
@@ -271,7 +318,7 @@ const Invoice = ({ data }: InvoiceProps) => {
             display: "flex",
             gap: "30mm",
             alignItems: "center",
-            padding: "0 2mm 4mm 2mm",
+            padding: "2mm",
           }}
         >
           <h4>THT:</h4>
@@ -287,20 +334,22 @@ const Invoice = ({ data }: InvoiceProps) => {
             paddingLeft: "2mm",
           }}
         >
-          <div style={{ paddingBottom: "4mm" }}>
+          <div style={{ paddingBottom: "1mm" }}>
             <h4>NetPay:</h4>
           </div>
-          <h4
+          <div
             style={{
               border: "0.5mm solid black",
               width: "30mm",
-              paddingBottom: "4mm",
+              height: "100%",
               background: "white",
-              textAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {totalPrice}
-          </h4>
+            <h4>{totalPrice}</h4>
+          </div>
         </div>
       </section>
       <section style={{ width: "190mm" }}>
